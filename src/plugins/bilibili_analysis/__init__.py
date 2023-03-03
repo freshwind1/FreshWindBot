@@ -5,8 +5,8 @@ from .config import Config
 from .bili_utils import *
 import re
 
-#global_config = get_driver().config
-#config = Config.parse_obj(global_config)
+# global_config = get_driver().config
+# config = Config.parse_obj(global_config)
 
 bili23_analysis = on_regex(
     r"(b23.tv)|(bili(22|23|33|2233).cn)|(.bilibili.com)|(^(av|cv)(\d+))|(^BV([a-zA-Z0-9]{10})+)|"
@@ -22,6 +22,11 @@ async def main_analysis(event: Event):
 
     group_id = None
 
-    msg = await bili_analysis(group_id, msg)
-    if msg:
-        await bili23_analysis.send(msg)
+    if hasattr(event, "group_id"):
+        group_id = event.group_id
+
+    resp = await bili_analysis(group_id, msg)
+    if resp.msg:
+        await bili23_analysis.send(resp.msg)
+
+    await download_video(group_id, resp)
