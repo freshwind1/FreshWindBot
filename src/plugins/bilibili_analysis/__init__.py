@@ -1,5 +1,6 @@
 from nonebot import get_driver, on_regex
-from nonebot.adapters import Event
+from nonebot.adapters import Event, Bot
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 
 from .config import Config
 from .bili_utils import *
@@ -16,17 +17,17 @@ bili23_analysis = on_regex(
 
 
 @bili23_analysis.handle()
-async def main_analysis(event: Event):
+async def main_analysis(bot: Bot, event: GroupMessageEvent):
     msg = str(event.get_message()).strip()
     msg = await handle_short_url(msg)
 
-    group_id = None
+    gid = event.group_id
+    # root = await bot.get_group_root_files(group_id=gid)
 
-    if hasattr(event, "group_id"):
-        group_id = event.group_id
-
-    resp = await bili_analysis(group_id, msg)
+    resp = await bili_analysis(gid, msg)
     if resp.msg:
-        await bili23_analysis.send(resp.msg)
+        await bot.send(event, resp.msg)
 
-    await download_video(group_id, resp)
+    msg = await download_video(bot, gid, resp)
+
+    # await bot.send(event, msg)
