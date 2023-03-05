@@ -28,7 +28,7 @@ class AnalysisResponse:
 
 
 def InitPath(group_id: str, info: AnalysisResponse):
-    path = f"{os.getcwd()}/BiliDownloads/{group_id}"
+    path = f"{os.getcwd()}/biliVideos/{group_id}"
     temp_path = f"{path}/temp"
     video_path = f"{temp_path}/v{info.bvid}.m4s"
     audio_path = f"{temp_path}/a{info.bvid}.m4s"
@@ -210,7 +210,7 @@ async def download_video(bot: Bot, gid: int, info: AnalysisResponse):
 
     await bot.upload_group_file(group_id=gid, file=str(mpath), name=f"{info.title}.mp4", folder=id)
 
-    #return Message("")
+    # return Message("")
 
 
 async def fileToMp4(path1: str, path2: str, outpath: str):
