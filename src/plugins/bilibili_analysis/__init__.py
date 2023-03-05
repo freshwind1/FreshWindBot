@@ -6,7 +6,7 @@ from .config import Config
 from .bili_utils import *
 import re
 
-# global_config = get_driver().config
+# global_config = ge t_driver().config
 # config = Config.parse_obj(global_config)
 
 bili23_analysis = on_regex(
