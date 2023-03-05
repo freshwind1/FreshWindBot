@@ -5,16 +5,44 @@ import json
 from typing import Optional, Union, Callable, Tuple
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, Bot
 from ffmpy3 import FFmpeg
+from .config import aria2c
 from tqdm import tqdm
 import asyncio
+from nonebot import require
+from typing import *
+try:
+    scheduler = require("nonebot_plugin_apscheduler").scheduler
+except Exception:
+    scheduler = None
+
 header = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
     'referer': 'https://www.bilibili.com',
-    'Cookie': 'SESSDATA=09206495%2C1693398789%2Cd817e%2A32'
+    'Cookie': 'SESSDATA=f7b1faa9%2C1693586391%2Ccd412%2A32'
 
 }
 
 # 'Cookie': 'SESSDATA=09206495%2C1693398789%2Cd817e%2A32'
+
+"""
+    'group_id':{
+        'aid_cid':{
+            'video':'gid',
+            'audio':'gid'
+        }
+    }
+"""
+down_records: Dict[str, Dict[str, str]] = {}
+
+
+def add_down_record(group_id: int, aid: int, cid: int, video_gid: str, audio_gid: str):
+    if not down_records.get(str(group_id)):
+        down_records[str(group_id)] = {}
+
+    if not down_records[str(group_id)].get(f"{aid}_{cid}"):
+        down_records[str(group_id)][f"{aid}_{cid}"] = {}
+        down_records[str(group_id)][f"{aid}_{cid}"]['video_gid'] = video_gid
+        down_records[str(group_id)][f"{aid}_{cid}"]['audio_gid'] = audio_gid
 
 
 class AnalysisResponse:
@@ -198,17 +226,29 @@ async def download_video(bot: Bot, gid: int, info: AnalysisResponse):
     info = await get_playurl(info)
     if not info.vurl or not info.aurl:
         return "获取下载地址失败~"
+
+    headers = [
+        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
+        "referer: https://www.bilibili.com",
+        "Cookie: SESSDATA=f7b1faa9%2C1693586391%2Ccd412%2A32"
+    ]
+
+    id = aria2c.add_uri([info.vurl],
+                        {"dir": f"{os.getcwd()}/biliVideos/{gid}",
+                         "header": headers, "out": f"v{info.aid}_{info.cid}.m4s"})
+    print(id)
     # print(info.vurl, info.aurl)
+    '''
     await asyncio.gather(
         dwonload_file(info.vurl, vpath, print),
         dwonload_file(info.aurl, apath, print)
     )
+    '''
+    # await fileToMp4(vpath, apath, mpath)
 
-    await fileToMp4(vpath, apath, mpath)
+    # id = await create_group_folder(bot, "BiliDonwloads", gid)
 
-    id = await create_group_folder(bot, "BiliDonwloads", gid)
-
-    await bot.upload_group_file(group_id=gid, file=str(mpath), name=f"{info.title}.mp4", folder=id)
+    # await bot.upload_group_file(group_id=gid, file=str(mpath), name=f"{info.title}.mp4", folder=id)
 
     # return Message("")
 
